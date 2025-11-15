@@ -1,44 +1,80 @@
-// Smooth scroll for internal links
-document.querySelectorAll('a[href^="#"]').forEach(a => {
-  a.addEventListener('click', (e) => {
-    const target = document.querySelector(a.getAttribute('href'));
-    if (target) {
-      e.preventDefault();
-      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      history.replaceState(null, '', a.getAttribute('href'));
+/* =========================================
+   LUXURY ACADEMIC SITE JS
+========================================= */
+
+/* ===== BACK TO TOP BUTTON ===== */
+const backToTop = document.getElementById('backToTop');
+
+window.addEventListener('scroll', () => {
+  if (window.scrollY > 400) {
+    backToTop.classList.add('show');
+  } else {
+    backToTop.classList.remove('show');
+  }
+
+  // Reveal animations
+  document.querySelectorAll('.reveal').forEach(el => {
+    const top = el.getBoundingClientRect().top;
+    const screenHeight = window.innerHeight;
+    if (top < screenHeight - 100) {
+      el.classList.add('visible');
     }
   });
 });
 
-// Reveal on scroll using IntersectionObserver
-const revealEls = document.querySelectorAll('.reveal');
-const obsOptions = { threshold: 0.12 };
+backToTop.addEventListener('click', () => {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
 
-const revealObserver = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      entry.target.classList.add('visible');
-      revealObserver.unobserve(entry.target);
+/* ===== SMOOTH SCROLL FOR NAV LINKS ===== */
+document.querySelectorAll('.site-nav a[href^="#"]').forEach(anchor => {
+  anchor.addEventListener('click', function(e) {
+    e.preventDefault();
+    const target = document.querySelector(this.getAttribute('href'));
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   });
-}, obsOptions);
+});
 
-revealEls.forEach(el => revealObserver.observe(el));
-
-// subtle hero art float on hover
+/* ===== HERO ART FLOAT EFFECT ===== */
 const heroArt = document.querySelector('.hero-art');
 if (heroArt) {
-  heroArt.addEventListener('mouseenter', () => heroArt.style.transform = 'translateY(-6px) scale(1.01)');
-  heroArt.addEventListener('mouseleave', () => heroArt.style.transform = 'translateY(0) scale(1)');
+  let floatDirection = 1;
+  let offset = 0;
+  setInterval(() => {
+    offset += floatDirection * 0.2;
+    if (offset > 5 || offset < -5) floatDirection *= -1;
+    heroArt.style.transform = `translateY(${offset}px) scale(1.01)`;
+  }, 30);
 }
 
-// small accessibility: enable focus outlines when keyboard used
-(function() {
-  function handleFirstTab(e) {
-    if (e.key === 'Tab') {
-      document.body.classList.add('user-is-tabbing');
-      window.removeEventListener('keydown', handleFirstTab);
-    }
-  }
-  window.addEventListener('keydown', handleFirstTab);
-})();
+/* ===== OPTIONAL: FORM SUBMIT (FORMS USING FORMSUBMIT.CO) ===== */
+const form = document.querySelector('form');
+if (form) {
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    const formData = new FormData(form);
+    fetch(form.action, {
+      method: 'POST',
+      body: formData,
+      headers: { 'Accept': 'application/json' }
+    })
+    .then(response => {
+      if (response.ok) {
+        alert('Message sent successfully!');
+        form.reset();
+      } else {
+        alert('Oops! There was a problem.');
+      }
+    })
+    .catch(error => {
+      alert('Network error. Please try again.');
+    });
+  });
+}
+
+/* ===== REVEAL ON LOAD ===== */
+window.addEventListener('load', () => {
+  document.querySelectorAll('.reveal').forEach(el => el.classList.add('visible'));
+});
